@@ -1,8 +1,14 @@
 #include "main.h"
 /**
+<<<<<<< HEAD
  * _printf - printf function
  * @format: const char pointer
  * Return: b_len
+=======
+ * _printf - Printf function
+ * @format: formats.
+ * Return: Printed chars.
+>>>>>>> e9e67cb422e2866bfe64097af5636440f7873511
  */
 int _printf(const char *format, ...)
 {
