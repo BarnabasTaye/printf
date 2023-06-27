@@ -1,53 +1,49 @@
 #include "main.h"
 
 /**
- * _printf - produces output according to a format
- * @format: format string containing the characters and the specifiers
+ * _printf - Prints output according to a format
+ * @format: Character string containing zero or more directives
  *
- * Description: This function calls the get_print_handler() function to determine
- * which printing function to call based on the conversion specifiers in the format.
- *
- * Return: length of the formatted output string
+ * Return: Number of characters printed
  */
 int _printf(const char *format, ...)
 {
-	int (*print_func)(va_list, Flags_t *);
-	const char *p;
-	va_list arguments;
-	Flags_t flags = {0, 0, 0};
+	va_list args;
 	int count = 0;
 
-	va_start(arguments, format);
+	va_start(args, format);
 
-	if (!format || (format[0] == '%' && !format[1]))
-		return (-1);
-
-	if (format[0] == '%' && format[1] == ' ' && !format[2])
-		return (-1);
-
-	for (p = format; *p; p++)
+	while (*format)
 	{
-		if (*p == '%')
+		if (*format == '%')
 		{
-			p++;
-			if (*p == '%')
+			format++;
+			switch (*format)
 			{
-				count += _putchar('%');
-				continue;
+				case 'c':
+					count += print_char(va_arg(args, int), NULL);
+					break;
+				case 's':
+					count += print_string(va_arg(args, char *), NULL);
+					break;
+				case '%':
+					count += print_percent(NULL, NULL);
+					break;
+				default:
+					count += _putchar('%');
+					count += _putchar(*format);
+					break;
 			}
-			while (get_flag(*p, &flags))
-				p++;
-			print_func = get_print_handler(*p);
-			count += (print_func)
-				? print_func(arguments, &flags)
-				: _printf("%%%c", *p);
 		}
 		else
-			count += _putchar(*p);
+		{
+			count += _putchar(*format);
+		}
+
+		format++;
 	}
 
-	_putchar(-1);
-	va_end(arguments);
+	va_end(args);
 
 	return (count);
 }
