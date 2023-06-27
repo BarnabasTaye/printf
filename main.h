@@ -6,28 +6,28 @@
 
 /**
  * struct Flags - struct containing flags to enable specific options
- * when a flag specifier is passed to print_formatted()
+ *               when a flag specifier is passed to print_formatted()
  * @plus: flag for the '+' character
  * @space: flag for the ' ' character
  * @hash: flag for the '#' character
  */
 typedef struct Flags
 {
-    int plus;
-    int space;
-    int hash;
+	int plus;
+	int space;
+	int hash;
 } Flags_t;
 
 /**
  * struct PrintHandler - struct to choose the appropriate function based on
- * the format specifier passed to print_formatted()
+ *                       the format specifier passed to print_formatted()
  * @specifier: format specifier
  * @print_function: pointer to the correct printing function
  */
 typedef struct PrintHandler
 {
-    char specifier;
-    int (*print_function)(va_list args, Flags_t *flags);
+	char specifier;
+	int (*print_function)(va_list args, Flags_t *flags);
 } PrintHandler_t;
 
 /* print_numbers */
