@@ -1,67 +1,94 @@
 #include "main.h"
 
-void print_buffer(char buffer[], int *buff_ind);
-
 /**
- * _printf_custom - Printf function
- * @format: format.
- * Return: Printed chars.
+ * _printf - Custom implementation of printf function
+ * @format: Format string
+ *
+ * Return: Number of characters printed (excluding null byte)
  */
-int _printf_custom(const char *format, ...)
+int _printf(const char *format, ...)
 {
-	int i, printed = 0, printed_chars = 0;
-	int flags, width, precision, size, buff_ind = 0;
-	va_list list;
-	char buffer[BUFF_SIZE];
+	va_list args;
+	int i, count = 0;
+	char buffer[BUFF_SIZE] = {0};
+
+	va_start(args, format);
 
 	if (format == NULL)
 		return (-1);
 
-	va_start(list, format);
-
-	for (i = 0; format && format[i] != '\0'; i++)
+	for (i = 0; format && format[i]; i++)
 	{
 		if (format[i] != '%')
 		{
-			buffer[buff_ind++] = format[i];
-			if (buff_ind == BUFF_SIZE)
-				print_buffer(buffer, &buff_ind);
-			/* write(1, &format[i], 1);*/
-			printed_chars++;
+			if (count == BUFF_SIZE - 1)
+			{
+				write(1, buffer, count);
+				count = 0;
+			}
+			buffer[count++] = format[i];
 		}
-		else
+		else if (format[i + 1])
 		{
-			print_buffer(buffer, &buff_ind);
-			flags = get_flags_custom(format, &i);
-			width = get_width_custom(format, &i, list);
-			precision = get_precision_custom(format, &i, list);
-			size = get_size_custom(format, &i);
-			++i;
-			printed = handle_print_custom(format, &i, list, buffer,
-				flags, width, precision, size);
-			if (printed == -1)
-				return (-1);
-			printed_chars += printed;
+			i++;
+			count += handle_print(&format[i], &i, args, buffer, 0, 0, 0, 0);
 		}
 	}
 
-	print_buffer(buffer, &buff_ind);
+	write(1, buffer, count);
+	va_end(args);
 
-	va_end(list);
-
-	return (printed_chars);
+	return (count);
 }
 
 /**
- * print_buffer - Prints the contents of the buffer if it exists
- * @buffer: Array of chars
- * @buff_ind: Index at which to add the next char, represents the length.
+ * handle_print - Handles the conversion specifiers and prints the corresponding output
+ * @fmt: Format specifier
+ * @i: Current index in the format string
+ * @list: va_list containing the arguments
+ * @buffer: Character buffer to store the formatted output
+ * @flags: Flags for the conversion specifier
+ * @width: Width specifier
+ * @precision: Precision specifier
+ * @size: Size specifier
+ *
+ * Return: Number of characters printed
  */
-void print_buffer(char buffer[], int *buff_ind)
+int handle_print(const char *fmt, int *i, va_list list, char buffer[],
+	int flags, int width, int precision, int size)
 {
-	if (*buff_ind > 0)
-		write(1, &buffer[0], *buff_ind);
+	int j, count = 0;
 
-	*buff_ind = 0;
+	fmt_t formats[] = {
+		{'c', print_char},
+		{'s', print_string},
+		{'%', print_percent},
+		{0, NULL}
+	};
+
+	UNUSED(precision);
+	UNUSED(size);
+
+	for (j = 0; formats[j].fmt; j++)
+	{
+		if (*fmt == formats[j].fmt)
+		{
+			count += formats[j].fn(list, buffer, flags, width, precision, size);
+			break;
+		}
+	}
+
+	if (formats[j].fmt == 0)
+	{
+		if (count == BUFF_SIZE - 1)
+		{
+			write(1, buffer, count);
+			count = 0;
+		}
+		buffer[count++] = '%';
+		buffer[count++] = *fmt;
+	}
+
+	return (count);
 }
 
